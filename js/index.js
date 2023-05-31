@@ -336,8 +336,7 @@ function main() {
         clusters.push(genCluster()) ;
         frames = 0 ;
     }
-
-    console.log(interval) ;
+    
     frames += 1 ;
 }
 
