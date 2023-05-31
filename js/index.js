@@ -12,6 +12,9 @@ document.body.style.overflow = 'hidden';
 let pressedKey = {a:false, d:false} ;
 let mouseX = 0 ;
 let mouseY = 0 ;
+let health = 100 ;
+let maxHealth = 100 ;
+let score = 0 ;
 
 // Player object
 class Player {
@@ -105,14 +108,27 @@ class Cluster {
 
 class Home {
     constructor() {
-        this.width = 100 ;
-        this.height = 80 ;
+        this.width = 150 ;
+        this.height = 100 ;
         this.position = {x: (canvas.width/2) - (this.width/2), y: canvas.height - 200} ;
+
+        let image = new Image() ;
+        image.src = 'assets/home.jpg' ;
+        image.onload = () => {
+            this.image = image ;
+        } ;
     }
 
     draw() {
-        c.fillStyle = "yellow" ;
-        c.fillRect(this.position.x, this.position.y, this.width, this.height) ;
+        if (this.image) {
+            c.drawImage(
+                this.image,
+                this.position.x,
+                this.position.y,
+                this.width,
+                this.height
+            )
+        }
     }
 }
 
@@ -187,13 +203,13 @@ function genCluster() {
         }
     }
 
-    let cAngle = Math.atan((cPos.y - home.position.y) / (cPos.x - home.position.x)) ;
+    let cAngle = Math.atan(((cPos.y + cHeight/2) - (home.position.y + home.height/2)) / ((cPos.x + cWidth/2) - (home.position.x + home.width/2))) ;
     if (cPos.x < home.position.x) {
         cAngle += Math.PI ;
     }
     let cVelocity = {
-        x: -1 * Math.cos(cAngle),
-        y: -1 * Math.sin(cAngle)
+        x: -2 * Math.cos(cAngle),
+        y: -2 * Math.sin(cAngle)
     } ;
 
     let cluster = new Cluster(cPos, cVelocity) ;
@@ -211,6 +227,26 @@ function main() {
     window.requestAnimationFrame(main) ;
     background() ;
 
+    // Draw home health bar
+    c.fillStyle = "white" ;
+    c.fillRect(20, 20, 300, 20) ;
+    c.fillStyle = "#18eb09" ;
+    if (health >= 0) {
+        c.fillRect(20, 20, 300 * (health/maxHealth), 20) ;
+    }
+
+    // Check if game over
+    if (health <= 0) {
+        alert("Game Over! Score: " + score.toString()) ;
+        score = 0 ;
+        health = maxHealth ;
+        clusters = [] ;
+        bullets = [] ;
+        player = new Player() ;
+        interval = 500 ;
+        frames = 0 ;
+    }
+
     // Change velocity based on input
     if (pressedKey.a && !pressedKey.d && player.position.x > 20) {
         player.velocity.x = -5 ;
@@ -219,6 +255,11 @@ function main() {
     } else {
         player.velocity.x = 0 ;
     }
+
+    // Draw score
+    c.font = "26px courier" ;
+    c.fillStyle = "white" ;
+    c.fillText("SCORE: " + score.toString(), canvas.width - 200, 40) ;
 
     // Draw home
     home.draw() ;
@@ -229,7 +270,7 @@ function main() {
     // Draw clusters
     clusters.forEach((cluster) => {
         cluster.bots.forEach((bot, index) => {
-            // If any bullet hit the bot, remove the bullet and the bot
+            // If any bullet hit the bot, remove the bullet and the bot, increase score
             for (let i = 0 ; i < bullets.length ; i++) {
                 let bullet = bullets[i] ;
                 let newPos = {
@@ -237,12 +278,41 @@ function main() {
                     y: bot.position.y + 17
                 } ;
                 if (isCollide(bullet.position, newPos, 17)) {
+                    score += 10 ;
+                    // Reduce interval for higher score
+                    if (score % 100 === 0 && score > 0) {
+                        if (interval >= 200) {
+                            interval -= 100 ;
+                        } else if (interval >= 50) {
+                            interval -= 5 ;
+                        }
+                    }
+        
                     setTimeout(() => {
                         bullets.splice(i, 1) ;
                         cluster.bots.splice(index, 1) ;
                     }, 0) ;
                     break ;
                 }
+            }
+
+            // If bot went past the screen, remove the bot
+            if (bot.position.y > canvas.height + 50) {
+                setTimeout(() => {
+                    cluster.bots.splice(index, 1) ;
+                }, 0) ;
+            }
+
+            // If bot hit the home, remove bot, and reduce health
+            let newPos = {
+                x: home.position.x + (home.width / 2),
+                y: home.position.y + (home.height / 2)
+            } ;
+            if (isCollide(bot.position, newPos, 75)) {
+                setTimeout(() => {
+                    cluster.bots.splice(index, 1) ;
+                }, 0) ;
+                health -= 5 ;
             }
 
             // Draw the bot
@@ -262,11 +332,12 @@ function main() {
     }) ;
 
     // Create cluster
-    if (frames % interval == 0) {
+    if (frames % interval === 0 && health > 0) {
         clusters.push(genCluster()) ;
         frames = 0 ;
     }
 
+    console.log(interval) ;
     frames += 1 ;
 }
 
