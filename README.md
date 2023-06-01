@@ -4,12 +4,13 @@ This is my code for Task 2 of Delta Inductions 2023 (Web development)
 # Live Page
 https://arjun-g-04.github.io/delta-web-2/
 
-# Normal Mode
+# Modes
 
-## Status: In progress
+## Normal Mode
 
-- ~Player moves left and right~
-- ~Player can shoot in all directions~
-- ~Bots fall from top~
-- ~Bots damage player and base~
-- ~Health and Scoring system~
+- **Status:** Completed on May 31st 2023
+- **Link:** https://github.com/Arjun-G-04/delta-web-2/tree/normal
+
+## Hacker Mode
+- **Status:** In progress
+- **Link:** https://github.com/Arjun-G-04/delta-web-2/tree/hacker
