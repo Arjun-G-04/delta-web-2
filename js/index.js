@@ -9,12 +9,15 @@ canvas.width = window.innerWidth ;
 canvas.height = window.innerHeight ;
 document.body.style.overflow = 'hidden';
 
-let pressedKey = {a:false, d:false} ;
+let pressedKey = {a:false, d:false, w:false, s:false} ;
 let mouseX = 0 ;
 let mouseY = 0 ;
 let health = 100 ;
 let maxHealth = 100 ;
 let score = 0 ;
+let highScoreVal = 0 ;
+let paused = true ;
+let playPause = document.getElementById('playPause') ;
 
 // Player object
 class Player {
@@ -72,6 +75,7 @@ class Bot {
     constructor(position, velocity) {
         this.position = position ;
         this.velocity = velocity ;
+        this.originalVelocity = velocity ;
 
         let image = new Image() ;
         image.src = 'assets/bot.png' ;
@@ -245,6 +249,8 @@ function main() {
         player = new Player() ;
         interval = 500 ;
         frames = 0 ;
+        paused = true ;
+        playPause.style.backgroundImage = 'url("/assets/play.png")' ;
     }
 
     // Change velocity based on input
@@ -256,10 +262,19 @@ function main() {
         player.velocity.x = 0 ;
     }
 
-    // Draw score
+    if (pressedKey.w && !pressedKey.s && player.position.y > 20) {
+        player.velocity.y = -5 ;
+    } else if (pressedKey.s && !pressedKey.w && player.position.y < canvas.height - 20) {
+        player.velocity.y = 5 ;
+    } else {
+        player.velocity.y = 0 ;
+    }
+
+    // Draw score and high score
     c.font = "26px courier" ;
     c.fillStyle = "white" ;
-    c.fillText("SCORE: " + score.toString(), canvas.width - 200, 40) ;
+    c.fillText("SCORE: " + score.toString(), canvas.width - 250, 40) ;
+    c.fillText("HIGH SCORE: " + highScoreVal.toString(), canvas.width - 250, 70) ;
 
     // Draw home
     home.draw() ;
@@ -270,6 +285,15 @@ function main() {
     // Draw clusters
     clusters.forEach((cluster) => {
         cluster.bots.forEach((bot, index) => {
+            // If paused, set velocity to 0, else set to original value
+            if (paused === true) {
+                if (bot.velocity.x === bot.originalVelocity.x && bot.velocity.y === bot.originalVelocity.y) {
+                    bot.velocity = {x:0, y:0} ;
+                }
+            } else {
+                bot.velocity = bot.originalVelocity ;
+            }
+
             // If any bullet hit the bot, remove the bullet and the bot, increase score
             for (let i = 0 ; i < bullets.length ; i++) {
                 let bullet = bullets[i] ;
@@ -279,6 +303,10 @@ function main() {
                 } ;
                 if (isCollide(bullet.position, newPos, 17)) {
                     score += 10 ;
+                    if (score > highScoreVal) {
+                        highScoreVal = score ;
+                        localStorage.setItem('highScore', JSON.stringify(highScoreVal)) ;
+                    }
                     // Reduce interval for higher score
                     if (score % 100 === 0 && score > 0) {
                         if (interval >= 200) {
@@ -308,7 +336,7 @@ function main() {
                 x: home.position.x + (home.width / 2),
                 y: home.position.y + (home.height / 2)
             } ;
-            if (isCollide(bot.position, newPos, 75)) {
+            if (isCollide(bot.position, newPos, 75) || bot.position.y > home.position.y + 20) {
                 setTimeout(() => {
                     cluster.bots.splice(index, 1) ;
                 }, 0) ;
@@ -330,28 +358,44 @@ function main() {
             e.draw() ;
         }
     }) ;
-
-    // Create cluster
-    if (frames % interval === 0 && health > 0) {
-        clusters.push(genCluster()) ;
-        frames = 0 ;
-    }
     
-    frames += 1 ;
+    if (!paused) {
+        // Create cluster
+        if (frames % interval === 0 && health > 0) {
+            clusters.push(genCluster()) ;
+            frames = 0 ;
+        }
+
+        frames += 1 ;
+    }
 }
 
 // START GAME
+let highScore = localStorage.getItem('highScore') ;
+if (highScore == null) {
+    localStorage.setItem('highScore', JSON.stringify(highScoreVal)) ;
+} else {
+    highScoreVal = JSON.parse(highScore) ;
+}
 window.requestAnimationFrame(main) ;
 
 // INPUT CONTROL
 window.addEventListener('keydown', (e) => {
-    switch (e.key) {
-        case 'a':
-            pressedKey.a = true ;
-            break ;
-        case 'd':
-            pressedKey.d = true ;
-            break ;
+    if (paused === false) {
+        switch (e.key) {
+            case 'a':
+                pressedKey.a = true ;
+                break ;
+            case 'd':
+                pressedKey.d = true ;
+                break ;
+            case 'w':
+                pressedKey.w = true ;
+                break ;
+            case 's':
+                pressedKey.s = true ;
+                break ;
+        }
     }
 }) ;
 
@@ -363,6 +407,12 @@ window.addEventListener('keyup', (e) => {
         case 'd':
             pressedKey.d = false ;
             break ;
+        case 'w':
+            pressedKey.w = false ;
+            break ;
+        case 's':
+            pressedKey.s = false ;
+            break ;
     }
 }) ;
 
@@ -372,7 +422,7 @@ window.addEventListener('mousemove', (e) => {
 }) ;
 
 window.addEventListener('keydown', (e) => {
-    if (e.key == " ") {
+    if (e.key ==- " " && paused === false) {
         let angle = Math.atan((mouseY - player.position.y) / (mouseX - player.position.x)) ;
         if (mouseX < player.position.x) {
             angle += Math.PI ;
@@ -387,4 +437,14 @@ window.addEventListener('keydown', (e) => {
         } ;
         bullets.push(new Bullet(position, velocity)) ;
     }
+}) ;
+
+playPause.addEventListener('click', (e) => {
+    paused = !paused ;
+    if (paused === true) {
+        playPause.style.backgroundImage = 'url("/assets/play.png")' ;
+    } else {
+        playPause.style.backgroundImage = 'url("/assets/pause.png")' ;
+    }
+    playPause.blur() ;
 }) ;
