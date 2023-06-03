@@ -250,7 +250,7 @@ function main() {
         interval = 500 ;
         frames = 0 ;
         paused = true ;
-        playPause.style.backgroundImage = 'url("/assets/play.png")' ;
+        playPause.style.backgroundImage = 'url("../assets/play.png")' ;
     }
 
     // Change velocity based on input
@@ -442,9 +442,9 @@ window.addEventListener('keydown', (e) => {
 playPause.addEventListener('click', (e) => {
     paused = !paused ;
     if (paused === true) {
-        playPause.style.backgroundImage = 'url("/assets/play.png")' ;
+        playPause.style.backgroundImage = 'url("../assets/play.png")' ;
     } else {
-        playPause.style.backgroundImage = 'url("/assets/pause.png")' ;
+        playPause.style.backgroundImage = 'url("../assets/pause.png")' ;
     }
     playPause.blur() ;
 }) ;
