@@ -1,12 +1,15 @@
 # Live Page
 https://arjun-g-04.github.io/delta-web-2/
 
-# Normal Mode
+# Hacker Mode
 
-## Status: Completed on May 31st 2023
+## Status: In Progress
 
-- ~Player moves left and right~
-- ~Player can shoot in all directions~
-- ~Bots fall from top~
-- ~Bots damage player and base~
-- ~Health and Scoring system~
+- Add shooting bots
+- ~Make player move in all directions~
+- Add powerups (Sheild, Health regen, Explosive bullet)
+- ~High score~
+- Instruction menu
+- ~Pause button~
+- Sound effects
+- Particle or other animations
