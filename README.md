@@ -7,7 +7,7 @@ https://arjun-g-04.github.io/delta-web-2/
 
 - ~Add shooting bots~
 - ~Make player move in all directions~
-- Add powerups (Sheild, Health regen, Explosive bullet)
+- ~Add powerups (Sheild, Health regen, Explosive bullet)~
 - ~High score~
 - Instruction menu
 - ~Pause button~
