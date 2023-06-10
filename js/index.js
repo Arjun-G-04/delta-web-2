@@ -1,5 +1,5 @@
 // VARIABLES
-
+"use strict";
 // Get the canva and context element
 const canvas = document.getElementById("myCanvas") ;
 const c = canvas.getContext('2d') ;
@@ -9,6 +9,8 @@ canvas.width = window.innerWidth ;
 canvas.height = window.innerHeight ;
 document.body.style.overflow = 'hidden';
 
+let canvasWidth = canvas.width ;
+let canvasHeight = canvas.height ;
 let pressedKey = {a:false, d:false, w:false, s:false} ;
 let mouseX = 0 ;
 let mouseY = 0 ;
@@ -18,11 +20,13 @@ let score = 0 ;
 let highScoreVal = 0 ;
 let paused = true ;
 let playPause = document.getElementById('playPause') ;
+let intervalId = null ;
+let intervalId2 = null ;
 
 // Player object
 class Player {
     constructor() {
-        this.position = {x:200, y:canvas.height - 100} ;
+        this.position = {x:200, y:canvasHeight - 100} ;
         this.velocity = {x:0, y:0} ;
         this.radius = 20 ;
         this.angle = radian(270) ;
@@ -54,9 +58,10 @@ class Player {
 }
 
 class Bullet {
-    constructor(position, velocity) {
+    constructor(position, velocity, colour) {
         this.position = position ;
         this.velocity = velocity ;
+        this.colour = colour ;
     }
 
     draw() {
@@ -65,7 +70,7 @@ class Bullet {
         this.position.y += this.velocity.y ;
 
         c.beginPath() ;
-        c.fillStyle = 'pink' ;
+        c.fillStyle = this.colour ;
         c.arc(this.position.x, this.position.y, 5, 0, 2*Math.PI) ;
         c.fill() ;  
     }
@@ -114,7 +119,7 @@ class Home {
     constructor() {
         this.width = 150 ;
         this.height = 100 ;
-        this.position = {x: (canvas.width/2) - (this.width/2), y: canvas.height - 200} ;
+        this.position = {x: (canvasWidth/2) - (this.width/2), y: canvasHeight - 200} ;
 
         let image = new Image() ;
         image.src = 'assets/home.jpg' ;
@@ -136,12 +141,48 @@ class Home {
     }
 }
 
+class Shooter {
+    constructor(position, velocity) {
+        this.position = position ;
+        this.velocity = velocity ;
+        this.originalVelocity = velocity ;
+        this.radius = 20 ;
+    }
+
+    draw() {
+        // set position
+        this.position.x += this.velocity.x ;
+        this.position.y += this.velocity.y ;
+
+        // gun part
+        let homeCenter = {x:(home.position.x + (home.width/2)), y:(home.position.y + (home.height/2))} ;
+        let angle = Math.atan((homeCenter.y - this.position.y) / (homeCenter.x - this.position.x)) ;
+        if (homeCenter.x < this.position.x) {
+            angle += Math.PI ;
+        }
+        c.save() ;
+        c.translate(this.position.x, this.position.y) ;
+        c.rotate(angle) ;
+        c.fillStyle = 'grey' ;
+        c.fillRect(0, -5, 40, 10) ;
+        c.restore() ;
+
+        // circle part
+        c.beginPath() ;
+        c.fillStyle = 'blue' ;
+        c.arc(this.position.x, this.position.y, this.radius, 0, 2*Math.PI) ;
+        c.fill() ;
+    }
+}
+
 let player = new Player() ;
 let bullets = [] ;
 let home = new Home() ;
 let clusters = [] ;
 let frames = 0 ;
 let interval = 500 ;
+let shooters = [] ;
+let enemyBullets = [] ;
 
 // FUNCTIONS
 
@@ -152,18 +193,18 @@ function radian(deg) {
 
 // Draw background
 function background() {
-    gradient = c.createRadialGradient(
-        canvas.width / 2,
-        canvas.height / 2,
+    let gradient = c.createRadialGradient(
+        canvasWidth / 2,
+        canvasHeight / 2,
         50,
-        canvas.width / 2,
-        canvas.height / 2,
-        canvas.width / 2
+        canvasWidth / 2,
+        canvasHeight / 2,
+        canvasWidth / 2
     ) ;
     gradient.addColorStop(0, "#b327e6") ;
     gradient.addColorStop(1, "#4c195e") ;
     c.fillStyle = gradient ;
-    c.fillRect(0, 0, canvas.width, canvas.height) ;
+    c.fillRect(0, 0, canvasWidth, canvasHeight) ;
 }
 
 // Check whether colliding ; radius coressponds to radius around cord2
@@ -180,7 +221,7 @@ function isCollide(cords1, cords2, radius) {
 function genCluster() {
     let cWidth = 150 ;
     let cHeight = 80 ;
-    let cPos = {x: Math.round((canvas.width - cWidth)*Math.random()), y:20} ;
+    let cPos = {x: Math.round((canvasWidth - cWidth)*Math.random()), y:20} ;
     let locs = [] ;
     let newPos = {
         x: Math.round(cPos.x + (cWidth)*Math.random()),
@@ -225,6 +266,48 @@ function genCluster() {
     return cluster ;
 }
 
+function genShooters() {
+    if (shooters.length < 2) {
+        while (true) {
+            let loc = {x: Math.round(50 + Math.random()*(canvasWidth-100)), y: 0} ;
+            let cond = true ;
+            shooters.forEach((e) => {
+                let val = Math.abs(e.position.x - loc.x) ;
+                if (val < 50) {
+                    cond = false ;
+                }
+            }) ;
+            if (cond) {
+                shooters.push(new Shooter(loc, {x:0, y:1})) ;
+                break ;
+            }
+        }
+        console.log("here") ;
+        genShooters() ;
+    } else {
+        return
+    }
+}
+
+function shootHome() {
+    shooters.forEach((shooter) => {
+        let homeCenter = {x:(home.position.x + (home.width/2)), y:(home.position.y + (home.height/2))} ;
+        let angle = Math.atan((homeCenter.y - shooter.position.y) / (homeCenter.x - shooter.position.x)) ;
+        if (homeCenter.x < shooter.position.x) {
+            angle += Math.PI ;
+        }
+        let velocity = {
+            x: 10 * Math.cos(angle),
+            y: 10 * Math.sin(angle)
+        } ;
+        let position = {
+            x: shooter.position.x + 40 * Math.cos(angle),
+            y: shooter.position.y + 40 * Math.sin(angle)
+        } ;
+        enemyBullets.push(new Bullet(position, velocity, "black")) ;
+    }) ;
+}
+
 // MAIN GAME LOOP
 
 function main() {
@@ -250,13 +333,14 @@ function main() {
         interval = 500 ;
         frames = 0 ;
         paused = true ;
-        playPause.style.backgroundImage = 'url("../assets/play.png")' ;
+        clearInterval(intervalId) ;
+        playPause.style.backgroundImage = 'url("https://raw.githubusercontent.com/Arjun-G-04/delta-web-2/main/assets/play.png")' ;
     }
 
     // Change velocity based on input
     if (pressedKey.a && !pressedKey.d && player.position.x > 20) {
         player.velocity.x = -5 ;
-    } else if (pressedKey.d && !pressedKey.a && player.position.x < canvas.width - 20) {
+    } else if (pressedKey.d && !pressedKey.a && player.position.x < canvasWidth - 20) {
         player.velocity.x = 5 ;
     } else {
         player.velocity.x = 0 ;
@@ -264,7 +348,7 @@ function main() {
 
     if (pressedKey.w && !pressedKey.s && player.position.y > 20) {
         player.velocity.y = -5 ;
-    } else if (pressedKey.s && !pressedKey.w && player.position.y < canvas.height - 20) {
+    } else if (pressedKey.s && !pressedKey.w && player.position.y < canvasHeight - 20) {
         player.velocity.y = 5 ;
     } else {
         player.velocity.y = 0 ;
@@ -273,14 +357,59 @@ function main() {
     // Draw score and high score
     c.font = "26px courier" ;
     c.fillStyle = "white" ;
-    c.fillText("SCORE: " + score.toString(), canvas.width - 250, 40) ;
-    c.fillText("HIGH SCORE: " + highScoreVal.toString(), canvas.width - 250, 70) ;
+    c.fillText("SCORE: " + score.toString(), canvasWidth - 250, 40) ;
+    c.fillText("HIGH SCORE: " + highScoreVal.toString(), canvasWidth - 250, 70) ;
 
     // Draw home
     home.draw() ;
 
     // Draw player
     player.draw() ;
+
+    // Draw shooters 
+    shooters.forEach((shooter, index) => {
+        // If paused, set velocity to 0, else set to original value
+        if (paused === true) {
+            if (shooter.velocity.y === shooter.originalVelocity.y) {
+                shooter.velocity = {x:0, y:0} ;
+            }
+        } else {
+            shooter.velocity = shooter.originalVelocity ;
+        }
+
+        // If reached 25% of distance, stop shooter
+        if (shooter.position.y > canvasHeight/4) {
+            shooter.velocity.y = 0 ;
+        }
+
+        // If any bullet hit the shooter, remove the bullet and the shooter, increase score
+        for (let i = 0 ; i < bullets.length ; i++) {
+            let bullet = bullets[i] ;
+            if (isCollide(bullet.position, shooter.position, 20)) {
+                score += 5 ;
+                if (score > highScoreVal) {
+                    highScoreVal = score ;
+                    localStorage.setItem('highScore', JSON.stringify(highScoreVal)) ;
+                }
+                // Reduce interval for higher score
+                if (score % 100 === 0 && score > 0) {
+                    if (interval >= 200) {
+                        interval -= 100 ;
+                    } else if (interval >= 50) {
+                        interval -= 5 ;
+                    }
+                }
+    
+                setTimeout(() => {
+                    bullets.splice(i, 1) ;
+                    shooters.splice(index, 1) ;
+                }, 0) ;
+                break ;
+            }
+        }
+
+        shooter.draw() ;
+    }) ;
 
     // Draw clusters
     clusters.forEach((cluster) => {
@@ -325,7 +454,7 @@ function main() {
             }
 
             // If bot went past the screen, remove the bot
-            if (bot.position.y > canvas.height + 50) {
+            if (bot.position.y > canvasHeight + 50) {
                 setTimeout(() => {
                     cluster.bots.splice(index, 1) ;
                 }, 0) ;
@@ -356,6 +485,31 @@ function main() {
             }, 0) ;
         } else {
             e.draw() ;
+        }
+    }) ;
+
+    // Draw enemy bullets
+    enemyBullets.forEach((e,i) => {
+        if (e.position.y > canvasHeight + 20) {
+            setTimeout(() => {
+                enemybullets.splice(i, 1) ;
+            }, 0) ;
+        } else {
+            e.draw() ;
+        }
+    }) ;
+
+    // Check for bullets hitting home
+    enemyBullets.forEach((bullet, i) => {
+        let newPos = {
+            x: home.position.x + (home.width / 2),
+            y: home.position.y + (home.height / 2)
+        } ;
+        if (isCollide(bullet.position, newPos, 75) || bullet.position.y > home.position.y + 20) {
+            setTimeout(() => {
+                enemyBullets.splice(i, 1) ;
+            }, 0) ;
+            health -= 2 ;
         }
     }) ;
     
@@ -435,16 +589,20 @@ window.addEventListener('keydown', (e) => {
             x: player.position.x + 40 * Math.cos(angle),
             y: player.position.y + 40 * Math.sin(angle)
         } ;
-        bullets.push(new Bullet(position, velocity)) ;
+        bullets.push(new Bullet(position, velocity, "pink")) ;
     }
 }) ;
 
 playPause.addEventListener('click', (e) => {
     paused = !paused ;
     if (paused === true) {
-        playPause.style.backgroundImage = 'url("../assets/play.png")' ;
+        clearInterval(intervalId) ;
+        clearInterval(intervalId2) ;
+        playPause.style.backgroundImage = 'url("https://raw.githubusercontent.com/Arjun-G-04/delta-web-2/main/assets/play.png")' ;
     } else {
-        playPause.style.backgroundImage = 'url("../assets/pause.png")' ;
+        intervalId = setInterval(genShooters, 15000) ;
+        intervalId2 = setInterval(shootHome, 3000) ;
+        playPause.style.backgroundImage = 'url("https://raw.githubusercontent.com/Arjun-G-04/delta-web-2/main/assets/pause.png")' ;
     }
     playPause.blur() ;
 }) ;

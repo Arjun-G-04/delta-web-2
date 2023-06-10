@@ -5,7 +5,7 @@ https://arjun-g-04.github.io/delta-web-2/
 
 ## Status: In Progress
 
-- Add shooting bots
+- ~Add shooting bots~
 - ~Make player move in all directions~
 - Add powerups (Sheild, Health regen, Explosive bullet)
 - ~High score~
