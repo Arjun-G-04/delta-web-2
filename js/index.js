@@ -442,9 +442,9 @@ window.addEventListener('keydown', (e) => {
 playPause.addEventListener('click', (e) => {
     paused = !paused ;
     if (paused === true) {
-        playPause.style.backgroundImage = 'url("../assets/play.png")' ;
+        playPause.style.backgroundImage = 'url("https://raw.githubusercontent.com/Arjun-G-04/delta-web-2/main/assets/play.png")' ;
     } else {
-        playPause.style.backgroundImage = 'url("../assets/pause.png")' ;
+        playPause.style.backgroundImage = 'url("https://raw.githubusercontent.com/Arjun-G-04/delta-web-2/main/assets/pause.png")' ;
     }
     playPause.blur() ;
 }) ;
