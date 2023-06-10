@@ -1,16 +1,15 @@
-# delta-web-2
-This is my code for Task 2 of Delta Inductions 2023 (Web development). This branch consists of the latest mode's code.
-
 # Live Page
 https://arjun-g-04.github.io/delta-web-2/
 
-# Modes
+# Hacker Mode
 
-## Normal Mode
+## Status: In Progress
 
-- **Status:** Completed on May 31st 2023
-- **Link:** https://github.com/Arjun-G-04/delta-web-2/tree/normal
-
-## Hacker Mode
-- **Status:** In progress
-- **Link:** https://github.com/Arjun-G-04/delta-web-2/tree/hacker
+- Add shooting bots
+- ~Make player move in all directions~
+- Add powerups (Sheild, Health regen, Explosive bullet)
+- ~High score~
+- Instruction menu
+- ~Pause button~
+- Sound effects
+- Particle or other animations
