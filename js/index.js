@@ -1,5 +1,6 @@
-// VARIABLES
 "use strict";
+// VARIABLES
+
 // Get the canva and context element
 const canvas = document.getElementById("myCanvas") ;
 const c = canvas.getContext('2d') ;
@@ -22,6 +23,8 @@ let paused = true ;
 let playPause = document.getElementById('playPause') ;
 let intervalId = null ;
 let intervalId2 = null ;
+let shield = false ;
+let explosive = false ;
 
 // Player object
 class Player {
@@ -175,6 +178,33 @@ class Shooter {
     }
 }
 
+class PowerUp {
+    constructor(position, type) {
+        this.position = position ;
+        this.type = type ;
+        this.width = 30 ;
+        this.height = 30 ;
+
+        let image = new Image() ;
+        image.src = 'assets/' + type + ".png" ;
+        image.onload = () => {
+            this.image = image ;
+        } ;
+    }
+
+    draw() {
+        if (this.image) {
+            c.drawImage(
+                this.image,
+                this.position.x,
+                this.position.y,
+                this.width,
+                this.height
+            )
+        }
+    }
+}
+
 let player = new Player() ;
 let bullets = [] ;
 let home = new Home() ;
@@ -183,6 +213,7 @@ let frames = 0 ;
 let interval = 500 ;
 let shooters = [] ;
 let enemyBullets = [] ;
+let powerUps = [] ;
 
 // FUNCTIONS
 
@@ -282,7 +313,6 @@ function genShooters() {
                 break ;
             }
         }
-        console.log("here") ;
         genShooters() ;
     } else {
         return
@@ -308,6 +338,11 @@ function shootHome() {
             enemyBullets.push(new Bullet(position, velocity, "black")) ;
         }
     }) ;
+}
+
+function distance(pos1, pos2) {
+    let dist = Math.sqrt((pos1.x - pos2.x)**2 + (pos1.y - pos2.y)**2) ;
+    return dist ;
 }
 
 // MAIN GAME LOOP
@@ -339,6 +374,7 @@ function main() {
         clearInterval(intervalId2) ;
         shooters = [] ;
         enemyBullets = [] ;
+        powerUps = [] ;
         playPause.style.backgroundImage = 'url("https://raw.githubusercontent.com/Arjun-G-04/delta-web-2/main/assets/play.png")' ;
     }
 
@@ -367,6 +403,21 @@ function main() {
 
     // Draw home
     home.draw() ;
+
+    // Draw shield
+    if (shield) {
+        c.save() ;
+        c.globalAlpha = 0.3 ;
+        c.fillStyle = 'blue' ;
+        c.beginPath();
+        c.arc(home.position.x + home.width/2, home.position.y + home.height/2, 100, 0, 2 * Math.PI);
+        c.fill();
+        c.globalAlpha = 1 ;
+        c.lineWidth = 2 ;
+        c.arc(home.position.x + home.width/2, home.position.y + home.height/2, 100, 0, 2 * Math.PI);
+        c.stroke();
+        c.restore() ;
+    }
 
     // Draw player
     player.draw() ;
@@ -417,7 +468,7 @@ function main() {
     }) ;
 
     // Draw clusters
-    clusters.forEach((cluster) => {
+    clusters.forEach((cluster, cindex) => {
         cluster.bots.forEach((bot, index) => {
             // If paused, set velocity to 0, else set to original value
             if (paused === true) {
@@ -436,7 +487,20 @@ function main() {
                     y: bot.position.y + 17
                 } ;
                 if (isCollide(bullet.position, newPos, 17)) {
-                    score += 10 ;
+                    if (explosive) {
+                        score += 10 * cluster.bots.length ;
+                        setTimeout(() => {
+                            bullets.splice(i, 1) ;
+                            clusters.splice(cindex, 1) ;
+                        }, 0) ;
+                    } else {
+                        score += 10 ;
+                        setTimeout(() => {
+                            bullets.splice(i, 1) ;
+                            cluster.bots.splice(index, 1) ;
+                        }, 0) ;
+                    }
+
                     if (score > highScoreVal) {
                         highScoreVal = score ;
                         localStorage.setItem('highScore', JSON.stringify(highScoreVal)) ;
@@ -449,11 +513,6 @@ function main() {
                             interval -= 5 ;
                         }
                     }
-        
-                    setTimeout(() => {
-                        bullets.splice(i, 1) ;
-                        cluster.bots.splice(index, 1) ;
-                    }, 0) ;
                     break ;
                 }
             }
@@ -470,11 +529,13 @@ function main() {
                 x: home.position.x + (home.width / 2),
                 y: home.position.y + (home.height / 2)
             } ;
-            if (isCollide(bot.position, newPos, 75) || bot.position.y > home.position.y + 20) {
+            if ((isCollide(bot.position, newPos, 75) || bot.position.y > home.position.y + 20)) {
                 setTimeout(() => {
                     cluster.bots.splice(index, 1) ;
                 }, 0) ;
-                health -= 5 ;
+                if (!shield) {
+                    health -= 5 ;
+                }
             }
 
             // Draw the bot
@@ -514,10 +575,90 @@ function main() {
             setTimeout(() => {
                 enemyBullets.splice(i, 1) ;
             }, 0) ;
-            health -= 2 ;
+            if (!shield) {
+                health -= 2 ;
+            }
+        }
+    }) ;
+
+    // Powerup spawn
+    let types = ['shield', 'regen', 'explosive'] ;
+    if (Math.random() < 0.003 && !paused) {
+        let type = types[Math.round(Math.random()*(2))] ;
+        let pos = {x:0, y:0} ;
+        pos.x = Math.round(canvasWidth*0.10 + Math.random()*(canvasWidth*0.80)) ;
+        pos.y = Math.round(canvasHeight*0.20 + Math.random()*(home.position.y - 100 - canvasHeight*0.20)) ;
+        let cond = true ;
+        powerUps.forEach((e) => {
+            if (distance(e.power.position, pos) < 50) {
+                cond = false
+            }
+        }) ;
+        shooters.forEach((e) => {
+            if (distance(e.position, pos) < 50) {
+                cond = false
+            }
+        }) ;
+        if (cond) {
+            powerUps.push({power: new PowerUp(pos, type), start: new Date()}) ;
+        }
+    }
+
+    // Powerup despwan or selection
+    powerUps.forEach((powerUp, index) => {
+        let currentTime = new Date() ;
+        if (Math.abs(currentTime - powerUp.start) > 5000) {
+            setTimeout(() => {
+                powerUps.splice(index, 1) ;
+            }, 0) ;
+        }
+
+        // If bullet hit the powerup, give the powerup
+        for (let i = 0 ; i < bullets.length ; i++) {
+            let bullet = bullets[i] ;
+            let newPos = {
+                x: powerUp.power.position.x + 15,
+                y: powerUp.power.position.y + 15
+            } ;
+            if (isCollide(bullet.position, newPos, 15)) {
+
+                if (powerUp.power.type === "shield" && !shield) {
+                    shield = true ;
+                    setTimeout(() => {
+                        shield = false ;
+                    }, 5000) ;
+                }
+
+                if (powerUp.power.type === "regen") {
+                    let newHealth = health + 15 ;
+                    if (newHealth > maxHealth) {
+                        health = maxHealth ;
+                    } else {
+                        health = newHealth ;
+                    }
+                }
+
+                if (powerUp.power.type === "explosive" && !explosive) {
+                    explosive = true ;
+                    setTimeout(() => {
+                        explosive = false ;
+                    }, 5000) ;
+                }
+
+                setTimeout(() => {
+                    bullets.splice(i, 1) ;
+                    powerUps.splice(index, 1) ;
+                }, 0) ;
+                break ;
+            }
         }
     }) ;
     
+    // Draw powerups
+    powerUps.forEach((powerUp) => {
+        powerUp.power.draw() ;
+    }) ;
+
     if (!paused) {
         // Create cluster
         if (frames % interval === 0 && health > 0) {
@@ -594,7 +735,11 @@ window.addEventListener('keyup', (e) => {
             x: player.position.x + 40 * Math.cos(angle),
             y: player.position.y + 40 * Math.sin(angle)
         } ;
-        bullets.push(new Bullet(position, velocity, "pink")) ;
+        let colour = "pink" ;
+        if (explosive) {
+            colour = "red" ;
+        }
+        bullets.push(new Bullet(position, velocity, colour)) ;
     }
 }) ;
 
