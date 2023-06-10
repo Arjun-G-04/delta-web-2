@@ -304,7 +304,9 @@ function shootHome() {
             x: shooter.position.x + 40 * Math.cos(angle),
             y: shooter.position.y + 40 * Math.sin(angle)
         } ;
-        enemyBullets.push(new Bullet(position, velocity, "black")) ;
+        if (shooter.position.y > canvasHeight*0.05) {
+            enemyBullets.push(new Bullet(position, velocity, "black")) ;
+        }
     }) ;
 }
 
@@ -334,6 +336,9 @@ function main() {
         frames = 0 ;
         paused = true ;
         clearInterval(intervalId) ;
+        clearInterval(intervalId2) ;
+        shooters = [] ;
+        enemyBullets = [] ;
         playPause.style.backgroundImage = 'url("https://raw.githubusercontent.com/Arjun-G-04/delta-web-2/main/assets/play.png")' ;
     }
 
@@ -575,7 +580,7 @@ window.addEventListener('mousemove', (e) => {
     mouseY = e.clientY ;
 }) ;
 
-window.addEventListener('keydown', (e) => {
+window.addEventListener('keyup', (e) => {
     if (e.key ==- " " && paused === false) {
         let angle = Math.atan((mouseY - player.position.y) / (mouseX - player.position.x)) ;
         if (mouseX < player.position.x) {
