@@ -16,3 +16,36 @@
     cursor: pointer ;
     filter: invert(50%);
 }
+
+#info {
+    background-image: url('../assets/info.png') ;
+    background-size: cover;
+    width: 50px ;
+    height: 50px ;
+    position: absolute;
+    right: 80px;
+    bottom: 20px;
+    border: none;
+    background-color: transparent ;
+    cursor: pointer ;
+    filter: invert(50%);
+    display: block;
+}
+
+#menu {
+    position: absolute;
+    top: 7vmin;
+    left: 7vmax;
+    width: 80vmax;
+    height: 80vmin;
+    background: linear-gradient(to right, rgb(255, 0, 157), rgb(140, 0, 255));
+    border: 3px solid white;
+    border-radius: 10px ;
+    font-family: 'Courier New', Courier, monospace;
+    color: white;
+    display: flex;
+    padding-left: 3vmax;
+    padding-top: 3vmin;
+    gap: 10px;
+    flex-flow: column wrap;
+}

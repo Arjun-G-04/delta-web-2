@@ -21,10 +21,21 @@ let score = 0 ;
 let highScoreVal = 0 ;
 let paused = true ;
 let playPause = document.getElementById('playPause') ;
+let info = document.getElementById('info') ;
 let intervalId = null ;
 let intervalId2 = null ;
 let shield = false ;
 let explosive = false ;
+let enemyShoot = new Audio('assets/enemyShoot.wav') ;
+let explosiveAudio = new Audio('assets/explosive.mp3') ;
+let healthAudio = new Audio('assets/health.mp3') ;
+let hurt = new Audio('assets/hurt.mp3') ;
+let playerShoot = new Audio('assets/playerShoot.wav') ;
+let powerGun = new Audio('assets/powerGun.mp3') ;
+let sheildAudio = new Audio('assets/shield.wav') ;
+let killed = new Audio('assets/killed.mp3') ;
+let menu = document.getElementById('menu') ;
+menu.showModal() ;
 
 // Player object
 class Player {
@@ -336,6 +347,9 @@ function shootHome() {
         } ;
         if (shooter.position.y > canvasHeight*0.05) {
             enemyBullets.push(new Bullet(position, velocity, "black")) ;
+            enemyShoot.currentTime = 0 ;
+            enemyShoot.volume = 0.75 ;
+            enemyShoot.play() ;
         }
     }) ;
 }
@@ -398,8 +412,8 @@ function main() {
     // Draw score and high score
     c.font = "26px courier" ;
     c.fillStyle = "white" ;
-    c.fillText("SCORE: " + score.toString(), canvasWidth - 250, 40) ;
-    c.fillText("HIGH SCORE: " + highScoreVal.toString(), canvasWidth - 250, 70) ;
+    c.fillText("SCORE: " + score.toString(), canvasWidth - 300, 40) ;
+    c.fillText("HIGH SCORE: " + highScoreVal.toString(), canvasWidth - 300, 70) ;
 
     // Draw home
     home.draw() ;
@@ -442,6 +456,8 @@ function main() {
         for (let i = 0 ; i < bullets.length ; i++) {
             let bullet = bullets[i] ;
             if (isCollide(bullet.position, shooter.position, 20)) {
+                killed.currentTime = '0' ;
+                killed.play() ;
                 score += 5 ;
                 if (score > highScoreVal) {
                     highScoreVal = score ;
@@ -489,12 +505,16 @@ function main() {
                 if (isCollide(bullet.position, newPos, 17)) {
                     if (explosive) {
                         score += 10 * cluster.bots.length ;
+                        explosiveAudio.currentTime = 0 ;
+                        explosiveAudio.play() ;
                         setTimeout(() => {
                             bullets.splice(i, 1) ;
                             clusters.splice(cindex, 1) ;
                         }, 0) ;
                     } else {
                         score += 10 ;
+                        killed.currentTime = '0' ;
+                        killed.play() ;
                         setTimeout(() => {
                             bullets.splice(i, 1) ;
                             cluster.bots.splice(index, 1) ;
@@ -534,6 +554,8 @@ function main() {
                     cluster.bots.splice(index, 1) ;
                 }, 0) ;
                 if (!shield) {
+                    hurt.currentTime = 0 ;
+                    hurt.play() ;
                     health -= 5 ;
                 }
             }
@@ -576,6 +598,8 @@ function main() {
                 enemyBullets.splice(i, 1) ;
             }, 0) ;
             if (!shield) {
+                hurt.currentTime = 0 ;
+                hurt.play() ;
                 health -= 2 ;
             }
         }
@@ -624,6 +648,7 @@ function main() {
 
                 if (powerUp.power.type === "shield" && !shield) {
                     shield = true ;
+                    sheildAudio.play() ;
                     setTimeout(() => {
                         shield = false ;
                     }, 5000) ;
@@ -634,11 +659,14 @@ function main() {
                     if (newHealth > maxHealth) {
                         health = maxHealth ;
                     } else {
+                        healthAudio.currentTime = 0 ;
+                        healthAudio.play() ;
                         health = newHealth ;
                     }
                 }
 
                 if (powerUp.power.type === "explosive" && !explosive) {
+                    powerGun.play() ;
                     explosive = true ;
                     setTimeout(() => {
                         explosive = false ;
@@ -677,6 +705,7 @@ if (highScore == null) {
 } else {
     highScoreVal = JSON.parse(highScore) ;
 }
+
 window.requestAnimationFrame(main) ;
 
 // INPUT CONTROL
@@ -739,6 +768,8 @@ window.addEventListener('keyup', (e) => {
         if (explosive) {
             colour = "red" ;
         }
+        playerShoot.currentTime = 0 ;
+        playerShoot.play() ;
         bullets.push(new Bullet(position, velocity, colour)) ;
     }
 }) ;
@@ -748,11 +779,23 @@ playPause.addEventListener('click', (e) => {
     if (paused === true) {
         clearInterval(intervalId) ;
         clearInterval(intervalId2) ;
+        info.style.display = 'block' ;
         playPause.style.backgroundImage = 'url("https://raw.githubusercontent.com/Arjun-G-04/delta-web-2/main/assets/play.png")' ;
     } else {
         intervalId = setInterval(genShooters, 15000) ;
         intervalId2 = setInterval(shootHome, 3000) ;
+        info.style.display = 'None' ;
         playPause.style.backgroundImage = 'url("https://raw.githubusercontent.com/Arjun-G-04/delta-web-2/main/assets/pause.png")' ;
     }
     playPause.blur() ;
+}) ;
+
+menu.addEventListener('click', (e) => {
+    menu.close() ;
+    menu.style.display = "None" ;
+}) ;
+
+info.addEventListener('click', (e) => {
+    menu.show() ;
+    menu.style.display = "flex" ;
 }) ;
