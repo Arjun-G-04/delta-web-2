@@ -8,9 +8,27 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <canvas id="myCanvas" width="150" height="150">
-    </canvas>
-    <button id="playPause"></button>
+    <div id="body">
+        <canvas id="myCanvas" width="150" height="150"></canvas>
+        <button id="playPause"></button>
+        <button id="info"></button>
+        <dialog id="menu">
+            <h1>Welcome to Droid Defence!</h1>
+            <h1>Protect NITT from SkyNet!!!</h1>
+            <h2><u>How to Play?</u></h2>
+            <p>🔷 Use W, A, S, D keys to move the player.</p>
+            <p>🔷 Move the mouse pointer anywere to aim the canon.</p>
+            <p>🔷 Press spacebar to shoot.</p>
+            <p>🔷 Destroy the bots and the shooters as long as you can.</p>
+            <p>🔷 Health of home shown on top right. Game over if health runs out.</p>
+            <h2><u>Power Ups</u></h2>
+            <div><img src="./assets/explosive.png" width="20" height="20"> Makes bullets <b>explosive</b> for 5 seconds </div>
+            <div><img src="./assets/regen.png" width="20" height="20"> Regenerates <b>health</b> </div>
+            <div><img src="./assets/shield.png" width="20" height="20"> Makes home <b>immune</b> for 10 seconds </div>
+            <h2><u>How to Start?</u></h2>
+            <p>🔷 Press play on <b>bottom right</b> to start after clicking anywhere on this menu!</p>
+        </dialog>
+    </div>
 </body>
 <script src="js/index.js"></script>
 </html>
