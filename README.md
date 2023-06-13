@@ -3,7 +3,7 @@ https://arjun-g-04.github.io/delta-web-2/
 
 # Hacker Mode
 
-## Status: Completed on 14-06-23
+## Status: Completed on June 16th 2023
 
 - ~Add shooting bots~
 - ~Make player move in all directions~
