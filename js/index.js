@@ -235,18 +235,11 @@ function radian(deg) {
 
 // Draw background
 function background() {
-    let gradient = c.createRadialGradient(
-        canvasWidth / 2,
-        canvasHeight / 2,
-        50,
-        canvasWidth / 2,
-        canvasHeight / 2,
-        canvasWidth / 2
-    ) ;
-    gradient.addColorStop(0, "#b327e6") ;
-    gradient.addColorStop(1, "#4c195e") ;
-    c.fillStyle = gradient ;
-    c.fillRect(0, 0, canvasWidth, canvasHeight) ;
+
+
+    let image = new Image() ;
+    image.src = 'assets/bg.jpg'
+    c.drawImage(image, 0, 0, canvasWidth, canvasHeight)
 }
 
 // Check whether colliding ; radius coressponds to radius around cord2
@@ -346,7 +339,7 @@ function shootHome() {
             y: shooter.position.y + 40 * Math.sin(angle)
         } ;
         if (shooter.position.y > canvasHeight*0.05) {
-            enemyBullets.push(new Bullet(position, velocity, "black")) ;
+            enemyBullets.push(new Bullet(position, velocity, "yellow")) ;
             enemyShoot.currentTime = 0 ;
             enemyShoot.volume = 0.75 ;
             enemyShoot.play() ;
@@ -751,7 +744,7 @@ window.addEventListener('mousemove', (e) => {
 }) ;
 
 window.addEventListener('keyup', (e) => {
-    if (e.key ==- " " && paused === false) {
+    if (e.key === " " && paused === false) {
         let angle = Math.atan((mouseY - player.position.y) / (mouseX - player.position.x)) ;
         if (mouseX < player.position.x) {
             angle += Math.PI ;
@@ -774,8 +767,38 @@ window.addEventListener('keyup', (e) => {
     }
 }) ;
 
+let time = null ;
+let nowTime = null ;
+window.addEventListener('click', (e) => {
+    nowTime = new Date() ;
+    if (time != null) {
+        if (paused === false && (nowTime-time) > 100) {
+            let angle = Math.atan((mouseY - player.position.y) / (mouseX - player.position.x)) ;
+            if (mouseX < player.position.x) {
+                angle += Math.PI ;
+            }
+            let velocity = {
+                x: 10 * Math.cos(angle),
+                y: 10 * Math.sin(angle)
+            } ;
+            let position = {
+                x: player.position.x + 40 * Math.cos(angle),
+                y: player.position.y + 40 * Math.sin(angle)
+            } ;
+            let colour = "pink" ;
+            if (explosive) {
+                colour = "red" ;
+            }
+            playerShoot.currentTime = 0 ;
+            playerShoot.play() ;
+            bullets.push(new Bullet(position, velocity, colour)) ;
+        }
+    }
+}) ;
+
 playPause.addEventListener('click', (e) => {
     paused = !paused ;
+    time = new Date() ;
     if (paused === true) {
         clearInterval(intervalId) ;
         clearInterval(intervalId2) ;

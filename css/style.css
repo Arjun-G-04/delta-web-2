@@ -4,7 +4,7 @@
 }
 
 #playPause {
-    background-image: url('../assets/play.png') ;
+    background-image: url('https://arjun-g-04.github.io/delta-web-2/assets/play.png') ;
     background-size: cover;
     width: 50px ;
     height: 50px ;
@@ -18,7 +18,7 @@
 }
 
 #info {
-    background-image: url('../assets/info.png') ;
+    background-image: url('https://arjun-g-04.github.io/delta-web-2/assets/info.png') ;
     background-size: cover;
     width: 50px ;
     height: 50px ;
