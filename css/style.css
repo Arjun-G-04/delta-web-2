@@ -34,10 +34,10 @@
 
 #menu {
     position: absolute;
-    top: 7vmin;
-    left: 7vmax;
-    width: 80vmax;
-    height: 80vmin;
+    top: 5vh;
+    left: 5vw;
+    width: 90vw;
+    height: 90vh;
     background: linear-gradient(to right, rgb(255, 0, 157), rgb(140, 0, 255));
     border: 3px solid white;
     border-radius: 10px ;
@@ -48,4 +48,5 @@
     padding-top: 3vmin;
     gap: 10px;
     flex-flow: column wrap;
+    overflow: auto;
 }
