@@ -235,8 +235,6 @@ function radian(deg) {
 
 // Draw background
 function background() {
-
-
     let image = new Image() ;
     image.src = 'assets/bg.jpg'
     c.drawImage(image, 0, 0, canvasWidth, canvasHeight)
